@@ -10,18 +10,20 @@ def index():
 @app.route('/getCompare',methods=['GET','POST'])
 def excute():
     try:
-
-      pTreatyList = request.args.get('platformTreatyList')
       aTreatyList = request.args.get('analysisTreatyList')
+      pTreatyList = request.args.get('platformTreatyList')
 
-      excute_compare(pTreatyList, aTreatyList)
+      aTreatyList = ["주계약","(무)크라운치료특약Ⅱ갱신형","	(무)소액치과치료특약 Ⅱ(갱신형)"]
+      pTreatyList = ["주계약","무)크라운치료특약Ⅱ갱신형","무)소액치과치료특약Ⅱ(갱신형)"]
+
+      excute_compare(aTreatyList,pTreatyList)
 
     except Exception as e:
       print(e)
     return redirect("/")
 
 # 플랫폼팀 특약과 분석팀 특약의 문장 유사도 계산
-def excute_compare(pTreatyList, aTreatyList):
+def excute_compare(aTreatyList,pTreatyList):
     try:
       pCompareTreatyList = []
       aCompareTreatyList = []
@@ -44,8 +46,10 @@ def excute_compare(pTreatyList, aTreatyList):
           aTreaty = kkma.pos(aTreatyItem)
           pTreaty = kkma.pos(pTreatyItem)
 
+          print("=====================================================")
           print("분석팀 특약 :: {treatyName}" .format(treatyName=aTreaty))
           print("플랫폼 특약 :: {treatyName}" .format(treatyName=pTreaty))
+          print("=====================================================")
 
           # kkma로 명사 + 품사 조사를 기반으로 플랫폼 특약과 분석팀 특약의 일치 여부 판단
           for aTreatyString in aTreaty:
@@ -60,8 +64,10 @@ def excute_compare(pTreatyList, aTreatyList):
             compareIndex = aCompareTreatyList.index(max(aCompareTreatyList))
             pCompareTreatyList.append(aTreatyList[compareIndex])
 
-        print("문자열 비교 전 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pTreatyList))
-        print("문자열 비교 후 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pCompareTreatyList))
+      print("============================================================================")
+      print("문자열 비교 전 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pTreatyList))
+      print("문자열 비교 후 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pCompareTreatyList))
+      print("============================================================================")
 
       return redirect("/")
 
