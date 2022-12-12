@@ -14,17 +14,18 @@ def index():
 @app.route('/test_post_send_one',methods=['GET','POST'])
 def test():
   params = {
-    "aTreatyList" : ["주계약","(무)크라운치료특약Ⅱ갱신형","(무)소액치과치료특약 Ⅱ(갱신형)"],
-    "pTreatyList" : ["주계약","무)소액치과치료특약Ⅱ(갱신형)","무)크라운치료특약Ⅱ갱신형"]
+         "planId" : "38150",
+         "aTreatyList" : ["주계약","(무)크라운치료특약Ⅱ갱신형","(무)소액치과치료특약 Ⅱ(갱신형)"],
+         "pTreatyList" : ["주계약","무)소액치과치료특약Ⅱ(갱신형)","무)크라운치료특약Ⅱ갱신형"] 
   }
 
-  res = requests.post("http://127.0.0.1:3100/getCompare",data=json.dumps(params))
+  res = requests.post("http://127.0.0.1:3100/getCompareOnlyOnePlanId",data=json.dumps(params))
   return res.text
 
 
 # 특약 문자열 비교 라우터 
 # post 처리 
-@app.route('/getCompare',methods=['GET','POST'])
+@app.route('/getCompareOnlyOnePlanId',methods=['GET','POST'])
 def excute():
   # aTreatyList = request.args.get('analysisTreatyList')
   # pTreatyList = request.args.get('platformTreatyList')
@@ -41,8 +42,9 @@ def excute():
     if( teamKey == "pTreatyList" ):
       for pTreatyItem in params[teamKey]:
         pTreatyList.append(pTreatyItem)
-        
+
   print("============================================================================")
+  print("플랜ID  : {planId}".format(planId=params["planId"]))
   print("분석팀 post 특약 list  : {aTreatyList}".format(aTreatyList=aTreatyList))
   print("플랫폼팀 post 특약 list  : {pTreatyList}".format(pTreatyList=pTreatyList))
   print("============================================================================")
