@@ -2,10 +2,15 @@ from konlpy.tag import Kkma
 from flask import Flask, render_template, redirect , request , jsonify
 import json
 import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
 # utf8 설정으로 인한 한글깨짐 방지
 app.config['JSON_AS_ASCII'] = False
+# json 정렬 false 처리  
+app.config['JSON_SORT_KEYS'] = False
+# Resource specific CORS
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.route("/",methods=['GET','POST'])
 def index():
@@ -14,18 +19,17 @@ def index():
 @app.route('/test_post_send_one',methods=['GET','POST'])
 def test():
   params = {
-         "planId" : "38150",
          "aTreatyList" : ["주계약","(무)크라운치료특약Ⅱ갱신형","(무)소액치과치료특약 Ⅱ(갱신형)"],
          "pTreatyList" : ["주계약","무)소액치과치료특약Ⅱ(갱신형)","무)크라운치료특약Ⅱ갱신형"] 
   }
 
-  res = requests.post("http://127.0.0.1:3100/getCompareOnlyOnePlanId",data=json.dumps(params))
+  res = requests.post("http://127.0.0.1:3100/api/v1/getCompareOnlyOnePlanId",data=json.dumps(params))
   return res.text
 
 
 # 특약 문자열 비교 라우터 
 # post 처리 
-@app.route('/getCompareOnlyOnePlanId',methods=['GET','POST'])
+@app.route('/api/v1/getCompareOnlyOnePlanId',methods=['GET','POST'])
 def excute():
   # aTreatyList = request.args.get('analysisTreatyList')
   # pTreatyList = request.args.get('platformTreatyList')
@@ -44,7 +48,6 @@ def excute():
         pTreatyList.append(pTreatyItem)
 
   print("============================================================================")
-  print("플랜ID  : {planId}".format(planId=params["planId"]))
   print("분석팀 post 특약 list  : {aTreatyList}".format(aTreatyList=aTreatyList))
   print("플랫폼팀 post 특약 list  : {pTreatyList}".format(pTreatyList=pTreatyList))
   print("============================================================================")
@@ -106,7 +109,6 @@ def excute_compare(aTreatyList,pTreatyList):
   print("문자열 비교 후 매칭 인데스 리스트 :: {treatyName}".format(treatyName=pCompareTreatyIndexList))
   print("문자열 비교 후 결과값  :: {treatyName}".format(treatyName=compareResultList))
   print("============================================================================")
-
 
   return jsonify(compareResultList)
 
