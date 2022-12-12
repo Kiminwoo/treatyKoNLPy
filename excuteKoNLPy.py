@@ -1,79 +1,113 @@
 from konlpy.tag import Kkma
-from flask import Flask, render_template, redirect , request
+from flask import Flask, render_template, redirect , request , jsonify
+import json
+import requests
 
 app = Flask(__name__)
+# utf8 설정으로 인한 한글깨짐 방지
+app.config['JSON_AS_ASCII'] = False
 
 @app.route("/",methods=['GET','POST'])
 def index():
-    return render_template('index.html')
+    return ""
 
+@app.route('/test_post_send_one',methods=['GET','POST'])
+def test():
+  params = {
+    "aTreatyList" : ["주계약","(무)크라운치료특약Ⅱ갱신형","(무)소액치과치료특약 Ⅱ(갱신형)"],
+    "pTreatyList" : ["주계약","무)소액치과치료특약Ⅱ(갱신형)","무)크라운치료특약Ⅱ갱신형"]
+  }
+
+  res = requests.post("http://127.0.0.1:3100/getCompare",data=json.dumps(params))
+  return res.text
+
+
+# 특약 문자열 비교 라우터 
+# post 처리 
 @app.route('/getCompare',methods=['GET','POST'])
 def excute():
-    try:
-      aTreatyList = request.args.get('analysisTreatyList')
-      pTreatyList = request.args.get('platformTreatyList')
+  # aTreatyList = request.args.get('analysisTreatyList')
+  # pTreatyList = request.args.get('platformTreatyList')
 
-      aTreatyList = ["주계약","(무)크라운치료특약Ⅱ갱신형","	(무)소액치과치료특약 Ⅱ(갱신형)"]
-      pTreatyList = ["주계약","무)크라운치료특약Ⅱ갱신형","무)소액치과치료특약Ⅱ(갱신형)"]
+  aTreatyList = []
+  pTreatyList = []
 
-      excute_compare(aTreatyList,pTreatyList)
+  params = json.loads(request.get_data(), encoding = "utf-8")
 
-    except Exception as e:
-      print(e)
-    return redirect("/")
+  for teamKey in params.keys():
+    if( teamKey == "aTreatyList" ):
+      for aTreatyItem in params[teamKey]:
+        aTreatyList.append(aTreatyItem)
+    if( teamKey == "pTreatyList" ):
+      for pTreatyItem in params[teamKey]:
+        pTreatyList.append(pTreatyItem)
+        
+  print("============================================================================")
+  print("분석팀 post 특약 list  : {aTreatyList}".format(aTreatyList=aTreatyList))
+  print("플랫폼팀 post 특약 list  : {pTreatyList}".format(pTreatyList=pTreatyList))
+  print("============================================================================")
+
+  compareResult = excute_compare(aTreatyList,pTreatyList)
+
+  return compareResult
+
 
 # 플랫폼팀 특약과 분석팀 특약의 문장 유사도 계산
 def excute_compare(aTreatyList,pTreatyList):
-    try:
-      pCompareTreatyList = []
-      aCompareTreatyList = []
+  pCompareTreatyList = []
+  pCompareTreatyIndexList = []
+  aCompareTreatyList = []
+  compareResultList = {}
 
-      kkma = Kkma()
+  # 꼬꼬마 선언 
+  kkma = Kkma()
 
 
-      # 플랫폼 특약 리스트
-      for pIndex, aTreatyItem in enumerate(aTreatyList):
+  # 플랫폼 특약 리스트
+  for pIndex, aTreatyItem in enumerate(aTreatyList):
 
-        # 분석팀 특약 비교 리스트 초기화
-        aCompareTreatyList = []
+    # 분석팀 특약 비교 리스트 초기화
+    aCompareTreatyList = []
 
-        # 분석팀 특약 리스트
-        for aIndex, pTreatyItem in enumerate(pTreatyList):
+    # 분석팀 특약 리스트
+    for aIndex, pTreatyItem in enumerate(pTreatyList):
 
-          # 동일 카운트 0 초기화
-          compareCnt = 0
+      # 동일 카운트 0 초기화
+      compareCnt = 0
 
-          aTreaty = kkma.pos(aTreatyItem)
-          pTreaty = kkma.pos(pTreatyItem)
+      aTreaty = kkma.pos(aTreatyItem)
+      pTreaty = kkma.pos(pTreatyItem)
 
-          print("=====================================================")
-          print("분석팀 특약 :: {treatyName}" .format(treatyName=aTreaty))
-          print("플랫폼 특약 :: {treatyName}" .format(treatyName=pTreaty))
-          print("=====================================================")
+      # print("=====================================================")
+      # print("분석팀 특약 :: {treatyName}" .format(treatyName=aTreaty))
+      # print("플랫폼 특약 :: {treatyName}" .format(treatyName=pTreaty))
+      # print("=====================================================")
 
-          # kkma로 명사 + 품사 조사를 기반으로 플랫폼 특약과 분석팀 특약의 일치 여부 판단
-          for aTreatyString in aTreaty:
-            for pTreatyString in pTreaty:
-              if (pTreatyString == aTreatyString):
-                compareCnt += 1
+      # kkma로 명사 + 품사 조사를 기반으로 플랫폼 특약과 분석팀 특약의 일치 여부 판단
+      for aTreatyString in aTreaty:
+        for pTreatyString in pTreaty:
+          if (pTreatyString == aTreatyString):
+            compareCnt += 1
 
-          aCompareTreatyList.append(compareCnt)
+      aCompareTreatyList.append(compareCnt)
 
-          # 기존 분석팀 특약리스트와 비교한 분석팀 특약리스트가 같아질때
-          if(len(aCompareTreatyList) == len(aTreatyList)):
-            compareIndex = aCompareTreatyList.index(max(aCompareTreatyList))
-            pCompareTreatyList.append(aTreatyList[compareIndex])
+      # 기존 분석팀 특약리스트와 비교한 분석팀 특약리스트가 같아질때
+      if(len(aCompareTreatyList) == len(aTreatyList)):
+        compareIndex = aCompareTreatyList.index(max(aCompareTreatyList))
+        pCompareTreatyList.append(aTreatyList[compareIndex])
+        pCompareTreatyIndexList.append(compareIndex)
+        compareResultList[aTreatyList[compareIndex]] = compareIndex
 
-      print("============================================================================")
-      print("문자열 비교 전 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pTreatyList))
-      print("문자열 비교 후 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pCompareTreatyList))
-      print("============================================================================")
+  print("============================================================================")
+  print("문자열 비교 전 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pTreatyList))
+  print("문자열 비교 후 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pCompareTreatyList))
+  print("문자열 비교 후 매칭 인데스 리스트 :: {treatyName}".format(treatyName=pCompareTreatyIndexList))
+  print("문자열 비교 후 결과값  :: {treatyName}".format(treatyName=compareResultList))
+  print("============================================================================")
 
-      return redirect("/")
 
-    except Exception as e:
-      print(e)
-    return redirect("/")
+  return jsonify(compareResultList)
+
 
 if __name__ == "__main__":
-  app.run(host='127.0.0.1',port=3000,debug=True)
+  app.run(host='127.0.0.1',port=3100,debug=True)
