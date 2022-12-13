@@ -17,5 +17,9 @@ class TestClass :
             "aTreatyList" : ["주계약","(무)크라운치료특약Ⅱ갱신형","(무)소액치과치료특약 Ⅱ(갱신형)"],
             "pTreatyList" : ["주계약","무)소액치과치료특약Ⅱ(갱신형)","무)크라운치료특약Ⅱ갱신형"]
           }
-        res = requests.post("http://127.0.0.1:3100/getCompare",data=json.dumps(params))
+        res = requests.post("http://127.0.0.1:3100/api/v1/getCompareOnlyOnePlanId",data=json.dumps(params))
         return res.text
+
+
+
+    
