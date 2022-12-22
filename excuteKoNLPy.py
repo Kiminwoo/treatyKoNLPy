@@ -83,7 +83,8 @@ def excute_compare(aTreatyList,pTreatyList):
       
       # 데이터 전처리 부분 
       pTreatyItem = data_preprocessing(pTreatyItem)
-
+      
+      # 형태소 분석 (analysis treaty, platform treaty)
       aTreaty = kkma.pos(aTreatyItem)
       pTreaty = kkma.pos(pTreatyItem)
       
