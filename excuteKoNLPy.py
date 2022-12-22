@@ -40,15 +40,9 @@ def excute():
   for teamKey in params.keys():
     if( teamKey == "aTreatyList" ):
       for aTreatyItem in params[teamKey]:
-
-        # 데이터 전처리 부분 
-        aTreatyItem = data_preprocessing(aTreatyItem)
         aTreatyList.append(aTreatyItem)
     if( teamKey == "pTreatyList" ):
       for pTreatyItem in params[teamKey]:
-
-        # 데이터 전처리 부분 
-        pTreatyItem = data_preprocessing(pTreatyItem)
         pTreatyList.append(pTreatyItem)
 
   print("============================================================================")
@@ -84,9 +78,18 @@ def excute_compare(aTreatyList,pTreatyList):
 
       # 동일 카운트 0 초기화
       compareCnt = 0
+      # 데이터 전처리 부분 
+      aTreatyItem = data_preprocessing(aTreatyItem)  
+      
+      # 데이터 전처리 부분 
+      pTreatyItem = data_preprocessing(pTreatyItem)
 
       aTreaty = kkma.pos(aTreatyItem)
       pTreaty = kkma.pos(pTreatyItem)
+      
+      # 중복된 데이터 제거
+      aTreaty = data_duplicate_check(aTreaty)
+      pTreaty = data_duplicate_check(pTreaty)
 
       # kkma로 명사 + 품사 조사를 기반으로 플랫폼 특약과 분석팀 특약의 일치 여부 판단
       for aTreatyString in aTreaty:
@@ -110,10 +113,10 @@ def excute_compare(aTreatyList,pTreatyList):
   compareResultList.append(compareResultObj)
   
   print("============================================================================")
-  print("문자열 비교 전 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pTreatyList))
-  print("문자열 비교 후 플랫폼팀 특약 리스트 :: {treatyName}".format(treatyName=pCompareTreatyList))
-  print("문자열 비교 후 매칭 인데스 리스트 :: {treatyName}".format(treatyName=pCompareTreatyIndexList))
-  print("문자열 비교 후 결과값  :: {treatyName}".format(treatyName=compareResultList))
+  print("문자열 비교 전 플랫폼팀 특약 리스트 :: {beforeCompareTreatyName}".format(beforeCompareTreatyName=pTreatyList))
+  print("문자열 비교 후 플랫폼팀 특약 리스트 :: {afterComparetreatyName}".format(afterComparetreatyName=pCompareTreatyList))
+  print("문자열 비교 후 매칭 인데스 리스트 :: {afterComparetreatyIndex}".format(afterComparetreatyIndex=pCompareTreatyIndexList))
+  print("문자열 비교 후 결과값  :: {afterCompareResult}".format(afterCompareResult=compareResultList))
   print("============================================================================")
 
   # return 해줄때 value 의 index 기준으로 정렬
@@ -134,6 +137,17 @@ def data_preprocessing(treatyItem):
     treatyItem = treatyItem.replace("(","").replace(")","")
 
     return treatyItem
+
+# 꼬꼬마로 걸러진 특약의 문자 리스트에서 중복된 데이터 제거 
+def data_duplicate_check(kkma_treatyList):
+
+    result = []
+    for value in kkma_treatyList:
+        if value not in result:
+            result.append(value)
+
+    return result
+
 
 def customSort(treaty):
     return treaty['value']
