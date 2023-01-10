@@ -63,17 +63,17 @@ def excute_compare(aTreatyList,pTreatyList):
 
   compareResultObj = {}
   compareResultList = []
-
+  
   # 꼬꼬마 선언 
   kkma = Kkma()
 
-  # 플랫폼 특약 리스트
+  # 분석팀 특약 리스트
   for pIndex, aTreatyItem in enumerate(aTreatyList):
 
     # 분석팀 특약 비교 리스트 초기화
     aCompareTreatyList = []
 
-    # 분석팀 특약 리스트
+    # 플랫폼팀 특약 리스트
     for aIndex, pTreatyItem in enumerate(pTreatyList):
 
       # 동일 카운트 0 초기화
@@ -103,15 +103,24 @@ def excute_compare(aTreatyList,pTreatyList):
       # 기존 분석팀 특약리스트와 비교한 분석팀 특약리스트가 같아질때
       # compareCnt 값이 제일 큰 특약과 매칭 
       if(len(aCompareTreatyList) == len(aTreatyList)):
-
+        # {분석팀특약 : {매칭한 플랫폼팀특약,매칭한 플랫폼팀특약 인덱스}} 
+        compareObj = {}
+        
         compareIndex = aCompareTreatyList.index(max(aCompareTreatyList))
 
         pCompareTreatyList.append(aTreatyList[compareIndex])
         pCompareTreatyIndexList.append(compareIndex)
 
-        compareResultObj[aTreatyList[compareIndex]] = compareIndex
+        # compareObj[pTreatyList[compareIndex]] = compareIndex
 
-  compareResultList.append(compareResultObj)
+        compareObj["pTreatyName"] = pTreatyList[compareIndex]
+        compareObj["aTreatyName"] = aTreatyList[compareIndex]
+        compareObj["findIndex"] = compareIndex
+
+        # compareResultObj[aTreatyList[compareIndex]] = compareObj
+        compareResultList.append(compareObj)
+
+#   compareResultList.append(compareResultObj)
   
   print("============================================================================")
   print("문자열 비교 전 플랫폼팀 특약 리스트 :: {beforeCompareTreatyName}".format(beforeCompareTreatyName=pTreatyList))
@@ -119,9 +128,9 @@ def excute_compare(aTreatyList,pTreatyList):
   print("문자열 비교 후 매칭 인데스 리스트 :: {afterComparetreatyIndex}".format(afterComparetreatyIndex=pCompareTreatyIndexList))
   print("문자열 비교 후 결과값  :: {afterCompareResult}".format(afterCompareResult=compareResultList))
   print("============================================================================")
-
+  
   # return 해줄때 value 의 index 기준으로 정렬
-  return jsonify(sorted(compareResultList[0].items(), key = lambda item: item[1]))
+  return jsonify(compareResultList)
 
 
 
